@@ -30,6 +30,7 @@ if (!localStorage.getItem("token")) {
   <div class="add-block">
     <h2>Добавить машину</h2>
 
+    <input id="name" placeholder="Наименование">
     <input id="vin" placeholder="VIN">
     <input id="company" placeholder="Компания">
 
@@ -80,13 +81,13 @@ if (!localStorage.getItem("token")) {
   <thead>
     <tr>
       <th>ID</th>
+      <th>Наименование</th>
       <th>VIN</th>
       <th>Компания</th>
       <th>Статус</th>
       <th>Дата</th>
       <th>Действия</th>
       <th>Тип</th>
-      <th>Наименование</th>
       <th>Груз</th>
       <th>Вес</th>
       <th>Габариты</th>
@@ -196,10 +197,10 @@ async function loadVehicles() {
 
     row.innerHTML = `
       <td>${v.id}</td>
+      <td>${v.name || "-"}</td>
       <td>${v.vin}</td>
       <td>${v.company}</td>
       <td>${v.status}</td>
-      <td>${v.name || "-"}</td>
       <td>${new Date(v.created_at).toLocaleString()}</td>
       <td>
         <select onchange="changeStatus(${v.id}, this.value)">

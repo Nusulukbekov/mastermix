@@ -180,7 +180,7 @@ td {
   border-bottom: 1px solid #f1f5f9;
 }
 
-tr:hover {
+tbody tr:hover {
   background: #f9fafb;
 }
 
