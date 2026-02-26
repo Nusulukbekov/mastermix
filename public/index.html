@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Master Mix</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<script>
+// 🔐 Проверка токена при загрузке
+if (!localStorage.getItem("token")) {
+  window.location.href = "/login.html";
+}
+</script>
+
+<!-- ===== HEADER ===== -->
+<div class="header">
+  <div class="header-left">
+    <img src="/images/mmlogo.png" class="logo">
+    <span>Master Mix Logistics</span>
+  </div>
+  <button onclick="logout()" class="logout-btn">Выйти</button>
+</div>
+
+<!-- ===== ВЕРХНИЙ БЛОК ===== -->
+<div class="top-section">
+
+  <!-- ДОБАВЛЕНИЕ -->
+  <div class="add-block">
+    <h2>Добавить машину</h2>
+
+    <input id="vin" placeholder="VIN">
+    <input id="company" placeholder="Компания">
+
+    <select id="transport_type">
+      <option value="regular">Обычная</option>
+      <option value="tral">Трал</option>
+    </select>
+
+    <select id="status">
+      <option value="Граница Иркештам">Граница Иркештам</option>
+      <option value="Документы получены">Документы получены</option>
+      <option value="Получено сопровождение">Получено сопровождение</option>
+      <option value="Получено спецразрешение Минтранс">Минтранс разрешение</option>
+      <option value="В пути">В пути</option>
+      <option value="Стоянка Каратай">Стоянка Каратай</option>
+      <option value="Растаможка">Растаможка</option>
+      <option value="Растаможена">Растаможена</option>
+      <option value="На базе компании">На базе компании</option>
+      <option value="Переоформлена">Переоформлена</option>
+    </select>
+
+    <div id="cargoFields" style="display:none;">
+      <input id="cargo_name" placeholder="Название груза">
+      <input id="cargo_weight" placeholder="Вес (тонны)">
+      <input id="cargo_size" placeholder="Габариты">
+    </div>
+
+    <button onclick="addVehicle()">Добавить</button>
+  </div>
+
+  <!-- ФИЛЬТР -->
+  <div class="filter-block">
+    <h2>Поиск и фильтр</h2>
+
+    <input id="searchVin" placeholder="Поиск по VIN" oninput="loadVehicles()">
+
+    <select id="filterType" onchange="loadVehicles()">
+      <option value="">Все</option>
+      <option value="regular">Обычные</option>
+      <option value="tral">Тралы</option>
+    </select>
+  </div>
+
+</div>
+
+<h2>Список машин</h2>
+<table border="1" cellpadding="5">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>VIN</th>
+      <th>Компания</th>
+      <th>Статус</th>
+      <th>Дата</th>
+      <th>Действия</th>
+      <th>Тип</th>
+      <th>Груз</th>
+      <th>Вес</th>
+      <th>Габариты</th>
+      <th>Минтранс</th>
+      <th>Сопровождение</th>
+      <th>Фото</th>
+      <th>Удалить</th>
+    </tr>
+  </thead>
+  <tbody id="list"></tbody>
+</table>
+
+<script>
+
+// 🔐 Функция выхода
+function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "/login.html";
+}
+
+// Универсальный заголовок авторизации
+function authHeader() {
+  return {
+    "Authorization": "Bearer " + localStorage.getItem("token")
+  };
+}
+
+async function deleteVehicle(id) {
+  const confirmDelete = confirm("Удалить эту машину?");
+  if (!confirmDelete) return;
+
+  await fetch(`/api/vehicles/${id}`, {
+    method: "DELETE",
+    headers: authHeader()
+  });
+
+  loadVehicles();
+}
+
+async function updateFlags(id, mintrans, escort) {
+  const res = await fetch("/api/vehicles", {
+    headers: authHeader()
+  });
+
+  const vehicles = await res.json();
+  const current = vehicles.find(v => v.id === id);
+
+  const newMintrans =
+    mintrans === null ? current.mintrans_permit : mintrans;
+
+  const newEscort =
+    escort === null ? current.escort_received : escort;
+
+  await fetch("/api/update-flags", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeader()
+    },
+    body: JSON.stringify({
+      id,
+      mintrans_permit: newMintrans,
+      escort_received: newEscort
+    })
+  });
+
+  loadVehicles();
+}
+
+async function updateMintrans(id, value) {
+  await fetch("/api/update-mintrans", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeader()
+    },
+    body: JSON.stringify({ id, value })
+  });
+
+  loadVehicles();
+}
+
+async function loadVehicles() {
+  const search = document.getElementById("searchVin").value;
+  const typeFilter = document.getElementById("filterType").value;
+
+  const res = await fetch("/api/vehicles", {
+    headers: authHeader()
+  });
+
+  if (res.status === 401) {
+    logout();
+    return;
+  }
+
+  const data = await res.json();
+
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  const filtered = data
+    .filter(v => !search || (v.vin && v.vin.includes(search)))
+    .filter(v => !typeFilter || v.transport_type === typeFilter);
+
+  filtered.forEach(v => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${v.id}</td>
+      <td>${v.vin}</td>
+      <td>${v.company}</td>
+      <td>${v.status}</td>
+      <td>${new Date(v.created_at).toLocaleString()}</td>
+      <td>
+        <select onchange="changeStatus(${v.id}, this.value)">
+          ${[
+            "Граница Иркештам",
+            "Документы получены",
+            "Получено сопровождение",
+            "Получено спецразрешение Минтранс",
+            "В пути",
+            "Стоянка Каратай",
+            "Растаможка",
+            "Растаможена",
+            "На базе компании",
+            "Переоформлена"
+          ].map(status =>
+            `<option value="${status}" ${v.status === status ? "selected" : ""}>${status}</option>`
+          ).join("")}
+        </select>
+      </td>
+      <td>
+        ${v.transport_type === "tral"
+            ? "Трал"
+            : "Обычная"}
+    </td>
+      <td>${v.cargo_name || "-"}</td>
+      <td>${v.cargo_weight || "-"}</td>
+      <td>${v.cargo_size || "-"}</td>
+      <td>
+        ${v.transport_type !== "tral"
+          ? "-"
+          : `<input type="checkbox"
+              ${v.mintrans_permit ? "checked" : ""}
+              onchange="updateMintrans(${v.id}, this.checked)">`
+        }
+      </td>
+      <td>
+        <input type="checkbox"
+          ${v.escort_received ? "checked" : ""}
+          onchange="updateFlags(${v.id}, null, this.checked)">
+      </td>
+      <td>
+        ${v.photo ? `<img src="/uploads/${v.photo}" width="80"><br>` : ""}
+        <input type="file" onchange="uploadPhoto(${v.id}, this.files[0])">
+      </td>
+      <td>
+        <button onclick="deleteVehicle(${v.id})" style="color:red;">
+          Удалить
+        </button>
+      </td>
+    `;
+
+    list.appendChild(row);
+  });
+}
+
+async function changeStatus(id, newStatus) {
+  await fetch("/api/update-status", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeader()
+    },
+    body: JSON.stringify({ id, status: newStatus })
+  });
+
+  loadVehicles();
+}
+
+async function addVehicle() {
+  const vin = document.getElementById("vin").value;
+  const company = document.getElementById("company").value;
+  const status = document.getElementById("status").value;
+  const transport_type = document.getElementById("transport_type").value;
+  const cargo_name = document.getElementById("cargo_name").value;
+  const cargo_weight = document.getElementById("cargo_weight").value;
+  const cargo_size = document.getElementById("cargo_size").value;
+
+  await fetch("/api/vehicles", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeader()
+    },
+    body: JSON.stringify({
+      vin,
+      company,
+      status,
+      transport_type,
+      cargo_name,
+      cargo_weight,
+      cargo_size
+    })
+  });
+
+  loadVehicles();
+}
+
+async function uploadPhoto(id, file) {
+  const formData = new FormData();
+  formData.append("photo", file);
+
+  await fetch(`/api/upload/${id}`, {
+    method: "POST",
+    headers: authHeader(),
+    body: formData
+  });
+
+  loadVehicles();
+}
+
+document.getElementById("transport_type").addEventListener("change", function() {
+  const cargoBlock = document.getElementById("cargoFields");
+
+  if (this.value === "tral") {
+    cargoBlock.style.display = "block";
+  } else {
+    cargoBlock.style.display = "none";
+  }
+});
+
+loadVehicles();
+</script>
+
+</body>
+</html>

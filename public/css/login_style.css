@@ -1,0 +1,95 @@
+/* ================================== */
+/* MASTER MIX LOGIN CLEAN STYLE       */
+/* ================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(135deg, #b91c1c, #dc2626);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Контейнер формы */
+body > h2,
+body > input,
+body > button {
+  display: block;
+}
+
+/* Обертка через псевдо-контейнер */
+body {
+  flex-direction: column;
+}
+
+/* Карточка логина */
+h2 {
+  background: white;
+  margin: 0;
+  padding: 35px 40px 0 40px;
+  width: 100%;
+  max-width: 380px;
+  border-radius: 18px 18px 0 0;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 600;
+  color: #111827;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+}
+
+/* Оборачиваем inputs визуально */
+input,
+button {
+  width: 100%;
+  max-width: 380px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+}
+
+input {
+  margin: 0;
+  border-top: none;
+  border-radius: 0;
+}
+
+/* Первый input */
+#username {
+  border-top: none;
+}
+
+/* Второй input */
+#password {
+  border-top: none;
+}
+
+/* Кнопка */
+button {
+  border: none;
+  border-radius: 0 0 18px 18px;
+  background: #dc2626;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: #b91c1c;
+}
+
+/* Адаптив */
+@media (max-width: 500px) {
+  input,
+  button,
+  h2 {
+    max-width: 90%;
+  }
+}
