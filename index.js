@@ -129,6 +129,7 @@ app.get("/api/vehicles", auth, async (req, res) => {
 // Добавить машину (защищено)
 app.post("/api/vehicles", auth, async (req, res) => {
   const {
+    name,
     vin,
     company,
     status,
@@ -142,10 +143,11 @@ app.post("/api/vehicles", auth, async (req, res) => {
 
   const result = await pool.query(
     `INSERT INTO vehicles 
-     (vin, company, status, transport_type, cargo_name, cargo_weight, cargo_size, mintrans_permit, escort_received) 
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) 
+     (name, vin, company, status, transport_type, cargo_name, cargo_weight, cargo_size, mintrans_permit, escort_received) 
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) 
      RETURNING *`,
     [
+      name,
       vin,
       company,
       status,
@@ -213,7 +215,7 @@ app.post("/api/upload/:id", auth, upload.single("photo"), async (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
+  console.log("Server running on port " + PORT);
 });
 // =====================
 // SERVER START

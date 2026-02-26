@@ -86,6 +86,7 @@ if (!localStorage.getItem("token")) {
       <th>Дата</th>
       <th>Действия</th>
       <th>Тип</th>
+      <th>Наименование</th>
       <th>Груз</th>
       <th>Вес</th>
       <th>Габариты</th>
@@ -198,6 +199,7 @@ async function loadVehicles() {
       <td>${v.vin}</td>
       <td>${v.company}</td>
       <td>${v.status}</td>
+      <td>${v.name || "-"}</td>
       <td>${new Date(v.created_at).toLocaleString()}</td>
       <td>
         <select onchange="changeStatus(${v.id}, this.value)">
@@ -267,6 +269,7 @@ async function changeStatus(id, newStatus) {
 }
 
 async function addVehicle() {
+  const name = document.getElementById("name").value;
   const vin = document.getElementById("vin").value;
   const company = document.getElementById("company").value;
   const status = document.getElementById("status").value;
@@ -282,6 +285,7 @@ async function addVehicle() {
       ...authHeader()
     },
     body: JSON.stringify({
+      name,
       vin,
       company,
       status,
