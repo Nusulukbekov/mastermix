@@ -77,29 +77,30 @@ if (!localStorage.getItem("token")) {
 </div>
 
 <h2>Список машин</h2>
-<table border="1" cellpadding="5">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Наименование</th>
-      <th>VIN</th>
-      <th>Компания</th>
-      <th>Статус</th>
-      <th>Дата</th>
-      <th>Действия</th>
-      <th>Тип</th>
-      <th>Груз</th>
-      <th>Вес</th>
-      <th>Габариты</th>
-      <th>Минтранс</th>
-      <th>Сопровождение</th>
-      <th>Фото</th>
-      <th>Удалить</th>
-    </tr>
-  </thead>
-  <tbody id="list"></tbody>
-</table>
-
+<div class="table-container">
+  <table border="1" cellpadding="5">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Наименование</th>
+        <th>VIN</th>
+        <th>Компания</th>
+        <th>Статус</th>
+        <th>Дата</th>
+        <th>Действия</th>
+        <th>Тип</th>
+        <th>Груз</th>
+        <th>Вес</th>
+        <th>Габариты</th>
+        <th>Минтранс</th>
+        <th>Сопровождение</th>
+        <th>Фото</th>
+        <th>Удалить</th>
+      </tr>
+    </thead>
+    <tbody id="list"></tbody>
+  </table>
+</div>
 <script>
 
 // 🔐 Функция выхода
